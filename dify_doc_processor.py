@@ -1,9 +1,10 @@
 import requests
 import re
+import os
 
 API_BASE_URL = "http://dify.刘竹.cn/v1"
 API_KEY = "app-rCTnmCw5c7DAZUST1fp4M9nQ"
-LOCAL_FILE_PATH = r"C:\Users\Administrator.DESKTOP-D77FUI2\Desktop\1.docx"
+LOCAL_FILE_PATH = r"C:\Users\liuleo2\OneDrive - Organon\SFE-销售指标设置.docx"
 USER_ID = "liuzhu"
 
 headers = {
@@ -63,9 +64,11 @@ def download_file_from_url(file_url, save_path):
     print(f"File downloaded to {save_path}")
 
 def main():
+    # 提取本地文件名
+    original_basename = os.path.splitext(os.path.basename(LOCAL_FILE_PATH))[0]
+
     # 上传文件
     file_id = upload_file()
-    #file_id = "7c54a14f-1523-4a11-b229-ce1d00648d2f"
 
     # 调用 blocking 工作流
     workflow_result = trigger_workflow(file_id)
@@ -78,8 +81,8 @@ def main():
         print("未找到下载链接")
         return
 
-    # 下载文件
-    save_path = "downloaded_result.txt"
+    # 下载文件并保持原始文件名
+    save_path = os.path.join(os.getcwd(), original_basename + ".txt")
     download_file_from_url(file_url, save_path)
 
 if __name__ == "__main__":
