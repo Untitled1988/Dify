@@ -142,8 +142,8 @@ style D fill:#e8f5e9,stroke:#2e7d32,stroke-width:3px
 ### 克隆仓库
 
 ```bash
-git clone https://github.com/your-org/pharma-knowledgebase.git
-cd pharma-knowledgebase
+git clone https://github.com/Untitled1988/Dify.git
+cd Dify
 ```
 
 ### 安装依赖（建议使用虚拟环境）
