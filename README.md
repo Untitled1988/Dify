@@ -13,13 +13,16 @@
   <a href="https://www.python.org/">
     <img src="https://img.shields.io/badge/python-3.10%2B-blue.svg" alt="Python Version">
   </a>
+
   <a href="https://opensource.org/licenses/MIT">
     <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT">
   </a>
+
   <a href="https://dify.ai/">
     <img src="https://img.shields.io/badge/Dify-AI-green.svg" alt="Dify AI">
   </a>
-  <a href="https://mineru.ai/">
+
+  <a href="https://mineru.net/">
     <img src="https://img.shields.io/badge/MinerU-DocCleaning-blueviolet.svg" alt="MinerU">
   </a>
 </p>
@@ -137,7 +140,7 @@ style D fill:#e8f5e9,stroke:#2e7d32,stroke-width:3px
 
 ---
 
-## 安装说明
+## 安装说明 (文字内容待调整)
 
 ### 克隆仓库
 
@@ -156,7 +159,7 @@ pip install -r requirements.txt
 
 ---
 
-## 使用方法
+## 使用方法 (文字内容待调整)
 
 ### 文档导入
 
