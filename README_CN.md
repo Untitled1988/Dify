@@ -171,13 +171,43 @@ python doc_preprocess.py --input data/sample.pdf --output out/cleaned.json
 
 ### 知识库同步
 
-通过 `dify_uploader.py` 实现自动上传至 Dify 知识库：
+使用 `upload_to_dify_datasets.py` 将 `dify_doc_processor.py` 处理后的 `.txt`/`.md` 文档，按“文件名第一个下划线 `_` 前的前缀”自动路由到对应 Dify 知识库（Dataset）并上传（父子分段模式）。
+
+- 路由规则（前缀 → 知识库名称）
+  - `Other_*` → `Other`
+  - `业务知识_*` → `业务知识`
+  - `运维手册_*` → `运维手册/SOP/KBA`
+  - `SOP_*`、`KBA_*` → `运维手册/SOP/KBA`
+  - 文件名不含下划线会被跳过
+
+- 默认分段配置（可覆盖）
+  - 父段分隔符: `##`
+  - 子段分隔符: `\n`
+  - 父段最大长度: 1024
+  - 子段最大长度: 512
+
+- API 设置
+  - 使用 Dataset API Key（可用 `--dataset-token` 指定，或环境变量 `DIFY_DATASET_API_KEY`）
+  - API Base 优先读取 `difyConfig.txt` 的 `DIFY.API_BASE_URL`，也可用 `--api-base` 覆盖
+
+使用示例：
 
 ```bash
-python dify_uploader.py --input out/cleaned.json --kb-id your_kb_id
+# 批量上传目录下的处理结果（.txt/.md）
+python upload_to_dify_datasets.py --input D:/path/to/processed_dir
+
+# 单文件上传（示例：业务知识前缀）
+python upload_to_dify_datasets.py --input "D:/path/业务知识_销售指标.txt"
+
+# 覆盖分段参数 / 地址 / 密钥
+python upload_to_dify_datasets.py \
+  --input D:/path/to/dir \
+  --api-base http://your-dify-host/v1 \
+  --dataset-token your_dataset_token \
+  --parent-sep "##" --child-sep "\n" --parent-max 1024 --child-max 512
 ```
 
-> 可支持选择父子结构上传与分段延迟策略。
+注意：请将处理后的文件命名为“前缀_标题.txt”，例如：`业务知识_SFE-目标医院的确定和选择.txt`；若无下划线分隔前缀，将不会被上传。
 
 ### 前端使用
 

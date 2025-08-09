@@ -290,7 +290,7 @@ class DifyAPI:
         if not file_url:
             return None
         endwith = '.txt'
-        save_path = f"{Path(file_path).stem}_result{endwith}"
+        save_path = f"{Path(file_path).stem}{endwith}"
 
         if self.download_file(file_url, save_path):
             return save_path
@@ -638,7 +638,7 @@ class DifyFrame(Frame):
         self.api_url_entry.insert(0, self.app.config["DIFY"]["API_BASE_URL"])
 
         Label(self, text="API密钥:").grid(row=1, column=0, padx=5, pady=5, sticky='e')
-        self.api_key_entry = Entry(self, width=50)
+        self.api_key_entry = Entry(self, width=50, show="*")
         self.api_key_entry.grid(row=1, column=1, columnspan=2, padx=5, pady=5)
         self.api_key_entry.insert(0, self.app.config["DIFY"]["API_KEY"])
 

@@ -4,7 +4,7 @@
         "IMAGE_URL_PREFIX": "https://127.0.0.1/images/"
     },
     "DIFY": {
-        "ENABLED": true,
+        "ENABLED": false,
         "API_BASE_URL": "http://dify.刘竹.cn/v1",
         "API_KEY": "app-rCTnmCw5c7DAZUST1fp4M9nQ",
         "USER_ID": "liuzhu",

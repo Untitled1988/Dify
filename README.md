@@ -171,13 +171,43 @@ python doc_preprocess.py --input data/sample.pdf --output out/cleaned.json
 
 ### Knowledge Base Sync
 
-Use `dify_uploader.py` to automatically upload to the Dify knowledge base:
+Use `upload_to_dify_datasets.py` to upload `.txt`/`.md` files produced by `dify_doc_processor.py` to the corresponding Dify datasets (knowledge bases) using parent-child chunking. Files are routed by the filename prefix before the first underscore `_`.
+
+- Routing rules (prefix → dataset name)
+  - `Other_*` → `Other`
+  - `业务知识_*` → `业务知识`
+  - `运维手册_*` → `运维手册/SOP/KBA`
+  - `SOP_*`, `KBA_*` → `运维手册/SOP/KBA`
+  - Files without an underscore are skipped
+
+- Default segmentation config (overridable)
+  - Parent separator: `##`
+  - Child separator: `\n`
+  - Parent max length: 1024
+  - Child max length: 512
+
+- API
+  - Uses Dataset API Key (pass via `--dataset-token` or environment variable `DIFY_DATASET_API_KEY`)
+  - API Base is read from `difyConfig.txt` `DIFY.API_BASE_URL` if present, and can be overridden via `--api-base`
+
+Examples:
 
 ```bash
-python dify_uploader.py --input out/cleaned.json --kb-id your_kb_id
+# Upload all processed results (.txt/.md) in a directory
+python upload_to_dify_datasets.py --input D:/path/to/processed_dir
+
+# Upload a single file (example: business knowledge prefix)
+python upload_to_dify_datasets.py --input "D:/path/业务知识_销售指标.txt"
+
+# Override segmentation / API base / token
+python upload_to_dify_datasets.py \
+  --input D:/path/to/dir \
+  --api-base http://your-dify-host/v1 \
+  --dataset-token your_dataset_token \
+  --parent-sep "##" --child-sep "\n" --parent-max 1024 --child-max 512
 ```
 
-> Supports optional parent-child upload and delayed chunking strategies.
+Note: Name processed files as `prefix_title.txt`, e.g., `业务知识_SFE-目标医院的确定和选择.txt`. Files without an underscore prefix will not be uploaded.
 
 ### Frontend
 
