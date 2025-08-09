@@ -27,6 +27,11 @@
   </a>
 </p>
 
+<p align="center">
+  <a href="README.md">English</a> | <strong>中文文档</strong>
+  <br>
+</p>
+
 
 ## 快速预览
 
