@@ -28,7 +28,7 @@
 </p>
 
 <p align="center">
-  <strong>English</strong> | <a href="README_CN.md">中文文档</a>
+  <strong>English</strong> | <a href="README_CN.md">中文</a>
   <br>
 </p>
 
@@ -86,9 +86,9 @@ Screenshots here
   - Implements parent-child hierarchical chunking while preserving logical context for downstream knowledge base syncing.
 
 
-- ⬜️ **Knowledge Base Auto Sync**
+- ✅ **Knowledge Base Auto Sync**
   - Goal: automatically submit processed chunks to the corresponding knowledge base (matching by document or category).
-  - Currently data can be uploaded via scripts, but auto classification/incremental update logic is under development.
+  - Currently data can be uploaded via scripts, auto classification, but incremental update logic is under development.
   - Plans include retry on errors, conflict detection, and upload success logging.
 
 
