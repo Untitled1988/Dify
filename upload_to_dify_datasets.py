@@ -76,29 +76,27 @@ class DifyDatasetClient:
                                  child_max_chars: int,
                                  indexing_technique: str = 'high_quality') -> Dict:
         """Upload a local file into a dataset with custom parent-child segmentation rules."""
-        url = f"{self.api_base}/datasets/{dataset_id}/document/create_by_file"
+        url = f"{self.api_base}/datasets/{dataset_id}/document/create-by-file"
 
-        # Construct process rules – best-effort keys based on public API docs
+        # Construct process rules with correct hierarchical segmentation for Dify API
         process_rule = {
-            "mode": "custom",
+            "mode": "hierarchical",
             "rules": {
                 "pre_processing_rules": [
-                    {"id": "remove_extra_spaces", "enabled": True},
-                    {"id": "remove_urls_emails", "enabled": True}
+                    {"id": "remove_extra_spaces", "enabled": False},
+                    {"id": "remove_urls_emails", "enabled": False}
                 ],
-                # Parent-child segmentation parameters
-                # Some Dify deployments require top-level segmentation.max_tokens
-                # even when using parent_child type.
+                # Main segmentation rules
                 "segmentation": {
-                    "type": "parent_child",
-                    # Top-level requirements
                     "separator": parent_separator,
-                    "max_tokens": parent_max_chars,
-                    # Child details
-                    "child": {
-                        "separator": child_separator,
-                        "max_tokens": child_max_chars
-                    }
+                    "max_tokens": parent_max_chars
+                },
+                # Parent mode for recall
+                "parent_mode": "paragraph",
+                # Sub-chunk segmentation rules
+                "subchunk_segmentation": {
+                    "separator": child_separator,
+                    "max_tokens": child_max_chars
                 }
             }
         }
@@ -106,6 +104,7 @@ class DifyDatasetClient:
         meta = {
             "name": file_path.name,
             "indexing_technique": indexing_technique,
+            "doc_form": "hierarchical_model",
             "process_rule": process_rule
         }
 
