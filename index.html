@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI欢乐助手 | 科技乐园</title>
+    <style>
+        :root {
+            --primary: #6e44ff;
+            --secondary: #ff6b6b;
+            --accent: #00ffcc;
+            --bg-color: #f0f4ff;
+            --text-dark: #2e2e3a;
+            --text-light: #ffffff;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            overflow-x: hidden;
+            background-image: 
+                url('https://wx2.sinaimg.cn/mw690/4c98f02bgy1hz2mfjk4v9j20sg0sg40r.jpg'),
+                radial-gradient(circle at 20% 30%, rgba(110, 68, 255, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 80% 70%, rgba(255, 107, 107, 0.05) 0%, transparent 20%);
+            background-blend-mode: overlay;
+            background-size: cover;
+            background-attachment: fixed;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            height: 70px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            padding: 0 30px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-radius: 0 0 15px 15px;
+        }
+
+        .nav-brand {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-right: auto;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-brand img {
+            height: 30px;
+            margin-right: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-left: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            box-shadow: 0 4px 15px rgba(110, 68, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(110, 68, 255, 0.4);
+        }
+
+        /* 主容器 */
+        .main-container {
+            display: flex;
+            min-height: calc(100vh - 70px);
+            position: relative;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* 左侧面板 */
+        .info-panel {
+            width: 320px;
+            min-width: 320px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+            height: calc(100vh - 110px);
+            position: sticky;
+            top: 90px;
+            z-index: 10;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 25px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+        }
+
+        .logo img {
+            width: 40px;
+            margin-right: 10px;
+        }
+
+        h2 {
+            color: var(--primary);
+            padding-bottom: 10px;
+            margin-top: 25px;
+            position: relative;
+            font-size: 18px;
+        }
+
+        h2::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            border-radius: 3px;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            margin-bottom: 15px;
+            position: relative;
+            padding-left: 35px;
+            line-height: 1.5;
+        }
+
+        .feature-list li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 5px;
+            width: 20px;
+            height: 20px;
+            background-image: url('https://wx2.sinaimg.cn/mw690/4c98f02bgy1hz2mfjk4v9j20sg0sg40r.jpg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            filter: hue-rotate(200deg);
+            opacity: 0.8;
+        }
+
+        /* 对话历史 */
+        .conversation-history {
+            margin-top: 25px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: var(--primary);
+            cursor: pointer;
+        }
+
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 12px 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .history-item:hover {
+            background: rgba(110, 68, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .history-item.active {
+            background: rgba(110, 68, 255, 0.15);
+            border-left: 4px solid var(--primary);
+        }
+
+        .history-time {
+            font-size: 12px;
+            color: rgba(46, 46, 58, 0.6);
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+        }
+
+        .history-time::before {
+            content: "🕒";
+            margin-right: 5px;
+            font-size: 10px;
+        }
+
+        /* 主内容区 */
+        .content-area {
+            flex: 1;
+            padding: 0 20px;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ai-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .ai-title {
+            color: var(--primary);
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        .ai-title img {
+            width: 24px;
+            margin-right: 10px;
+        }
+
+        #chatTime {
+            font-size: 13px;
+            color: rgba(46, 46, 58, 0.7);
+            background: rgba(0, 0, 0, 0.03);
+            padding: 4px 10px;
+            border-radius: 50px;
+        }
+
+        /* AI对话框容器 */
+        .ai-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 300px;
+            position: relative;
+        }
+
+        .ai-frame-container {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            box-shadow: 
+                0 10px 30px rgba(110, 68, 255, 0.15),
+                0 5px 15px rgba(255, 107, 107, 0.1);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        #aiIframe {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            min-height: 500px;
+            border: none;
+            background: transparent;
+            border-radius: 20px;
+        }
+
+        /* 科技感装饰元素 */
+        .tech-icon {
+            position: absolute;
+            z-index: -1;
+            opacity: 0.1;
+            filter: drop-shadow(0 0 10px rgba(110, 68, 255, 0.3));
+        }
+
+        .tech-icon-1 {
+            top: 10%;
+            left: 5%;
+            width: 100px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .tech-icon-2 {
+            bottom: 15%;
+            right: 8%;
+            width: 120px;
+            animation: float 8s ease-in-out infinite 2s;
+        }
+
+        .tech-icon-3 {
+            top: 30%;
+            right: 15%;
+            width: 80px;
+            animation: float 7s ease-in-out infinite 1s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        /* 粒子背景 */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        /* 侧边栏切换按钮 */
+        .toggle-sidebar {
+            display: none;
+            background: rgba(110, 68, 255, 0.1);
+            border: none;
+            color: var(--primary);
+            font-size: 20px;
+            cursor: pointer;
+            margin-right: 15px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .toggle-sidebar:hover {
+            background: rgba(110, 68, 255, 0.2);
+            transform: rotate(90deg);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .main-container {
+                padding: 15px;
+            }
+            
+            .info-panel {
+                width: 280px;
+                min-width: 280px;
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .info-panel {
+                position: fixed;
+                left: 0;
+                top: 70px;
+                bottom: 0;
+                transform: translateX(-100%);
+                z-index: 90;
+                background: rgba(255, 255, 255, 0.95);
+                height: calc(100vh - 70px);
+                width: 300px;
+                border-radius: 0 20px 20px 0;
+            }
+            
+            .info-panel.active {
+                transform: translateX(0);
+            }
+            
+            .toggle-sidebar {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .content-area {
+                padding-left: 0;
+                padding-right: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0 20px;
+                height: 60px;
+            }
+            
+            .btn span {
+                display: none;
+            }
+            
+            .btn::after {
+                content: "+";
+                font-size: 18px;
+            }
+            
+            .ai-header {
+                padding: 12px 15px;
+            }
+            
+            #aiIframe {
+                min-height: 400px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-container {
+                padding: 10px;
+            }
+            
+            #aiIframe {
+                min-height: 350px;
+            }
+            
+            .tech-icon {
+                display: none;
+            }
+        }
+
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(110, 68, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(110, 68, 255, 0.5);
+        }
+
+        /* 加载动画 */
+        .loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            display: none;
+        }
+
+        .loader.active {
+            display: block;
+        }
+
+        .loader-circle {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 5px solid transparent;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loader-circle:nth-child(2) {
+            border-top-color: var(--secondary);
+            width: 80%;
+            height: 80%;
+            top: 10%;
+            left: 10%;
+            animation: spin 1.5s linear infinite reverse;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子背景 -->
+    <canvas id="particles" class="particles"></canvas>
+    
+    <!-- 科技感装饰图标 -->
+    <img src="http://pic.xn--2br990h.cn/logo.jpg" class="tech-icon tech-icon-1">
+    <img src="http://pic.xn--2br990h.cn/logo.jpg" class="tech-icon tech-icon-2">
+    <img src="http://pic.xn--2br990h.cn/logo.jpg" class="tech-icon tech-icon-3">
+
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <button class="toggle-sidebar" id="toggleSidebar">☰</button>
+        <div class="nav-brand">
+            <img src="https://www.lagou.com/i/image/M00/3D/FA/CgqKkVdzahGAJM0XAAAw_bwj8yE084.jpg" alt="AI Logo">
+            AI欢乐助手
+        </div>
+        <button class="btn btn-primary" id="newChatBtn">
+            <span>+ 新建对话</span>
+        </button>
+    </nav>
+
+    <div class="main-container">
+        <!-- 左侧面板 -->
+        <div class="info-panel" id="infoPanel">
+            <div class="logo">
+                <img src="http://pic.xn--2br990h.cn/logo.jpg" alt="AI Logo">
+                CEDC 维灵小工具
+            </div>
+            
+            <h2>智能助手</h2>
+            <p>让科技变得有趣！我们的AI助手不仅能解决问题，还能给您带来欢乐的互动体验。</p>
+            
+            <h2>特色功能</h2>
+            <ul class="feature-list">
+                <li>幽默风趣的对话风格</li>
+                <li>智能表情和动画反馈</li>
+                <li>个性化互动体验</li>
+                <li>多主题切换功能</li>
+                <li>学习您的喜好</li>
+            </ul>
+            
+            <div class="conversation-history">
+                <div class="history-header" id="toggleHistory">
+                    <h3>对话历史</h3>
+                    <span>▼</span>
+                </div>
+                <ul class="history-list" id="historyList">
+                    <!-- 对话历史将通过JS动态生成 -->
+                </ul>
+            </div>
+        </div>
+        
+        <!-- 主内容区 -->
+        <div class="content-area">
+            <div class="ai-header">
+                <h3 class="ai-title" id="currentChatTitle">
+                    <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" alt="Chat Icon">
+                    新对话
+                </h3>
+                <div class="ai-actions">
+                    <span id="chatTime"></span>
+                </div>
+            </div>
+            
+            <!-- AI对话框容器 -->
+            <div class="ai-wrapper">
+                <div class="loader" id="loader">
+                    <div class="loader-circle"></div>
+                    <div class="loader-circle"></div>
+                </div>
+                <div class="ai-frame-container">
+                    <iframe id="aiIframe" allow="microphone; clipboard-write"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 粒子背景效果
+        class Particles {
+            constructor() {
+                this.canvas = document.getElementById('particles');
+                this.ctx = this.canvas.getContext('2d');
+                this.particles = [];
+                this.colors = ['#6e44ff', '#ff6b6b', '#00ffcc', '#ffd166'];
+                this.init();
+            }
+            
+            init() {
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                
+                // 创建粒子
+                for (let i = 0; i < 50; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        size: Math.random() * 3 + 1,
+                        color: this.colors[Math.floor(Math.random() * this.colors.length)],
+                        speedX: Math.random() * 0.5 - 0.25,
+                        speedY: Math.random() * 0.5 - 0.25,
+                        opacity: Math.random() * 0.6 + 0.2
+                    });
+                }
+                
+                this.animate();
+            }
+            
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+            
+            animate() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.particles.forEach(particle => {
+                    // 更新位置
+                    particle.x += particle.speedX;
+                    particle.y += particle.speedY;
+                    
+                    // 边界检查
+                    if (particle.x < 0 || particle.x > this.canvas.width) {
+                        particle.speedX = -particle.speedX;
+                    }
+                    
+                    if (particle.y < 0 || particle.y > this.canvas.height) {
+                        particle.speedY = -particle.speedY;
+                    }
+                    
+                    // 绘制粒子
+                    this.ctx.beginPath();
+                    this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    this.ctx.fillStyle = particle.color;
+                    this.ctx.globalAlpha = particle.opacity;
+                    this.ctx.fill();
+                    this.ctx.globalAlpha = 1;
+                });
+                
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        // 对话管理类
+        class ChatManager {
+            constructor() {
+                this.chats = JSON.parse(localStorage.getItem('ai_chats')) || [];
+                this.currentChatId = null;
+                this.historyVisible = true;
+                this.init();
+                this.setupEventListeners();
+                this.setupResizeHandler();
+            }
+            
+            init() {
+                this.renderHistory();
+                if (this.chats.length > 0) {
+                    this.loadChat(this.chats[0].id);
+                } else {
+                    this.createNewChat();
+                }
+            }
+            
+            setupEventListeners() {
+                // 新建对话按钮
+                document.getElementById('newChatBtn').addEventListener('click', () => this.createNewChat());
+                
+                // 切换历史列表
+                document.getElementById('toggleHistory').addEventListener('click', () => {
+                    this.historyVisible = !this.historyVisible;
+                    const historyList = document.getElementById('historyList');
+                    const toggleIcon = document.querySelector('#toggleHistory span');
+                    
+                    if (this.historyVisible) {
+                        historyList.style.display = 'block';
+                        toggleIcon.textContent = '▼';
+                    } else {
+                        historyList.style.display = 'none';
+                        toggleIcon.textContent = '▶';
+                    }
+                });
+                
+                // 切换侧边栏
+                document.getElementById('toggleSidebar').addEventListener('click', () => {
+                    document.getElementById('infoPanel').classList.toggle('active');
+                });
+            }
+            
+            setupResizeHandler() {
+                // 窗口大小变化时调整iframe
+                window.addEventListener('resize', () => {
+                    if (this.currentChatId) {
+                        this.adjustIframeSize();
+                    }
+                });
+            }
+            
+            createNewChat() {
+                const chatId = 'chat-' + Date.now();
+                const newChat = {
+                    id: chatId,
+                    title: '欢乐对话 ' + (this.chats.length + 1),
+                    timestamp: new Date().toISOString(),
+                    lastActive: new Date().toLocaleTimeString(),
+                    url: 'http://dify.刘竹.cn/chatbot/imFaAek0QfUgd8h0?session=' + chatId // 替换为您的Dify地址
+                };
+                
+                this.chats.unshift(newChat);
+                this.saveChats();
+                this.loadChat(chatId);
+                this.renderHistory();
+            }
+            
+            loadChat(chatId) {
+                const chat = this.chats.find(c => c.id === chatId);
+                if (!chat) return;
+                
+                // 显示加载动画
+                document.getElementById('loader').classList.add('active');
+                
+                this.currentChatId = chatId;
+                document.getElementById('currentChatTitle').textContent = chat.title;
+                document.getElementById('chatTime').textContent = '最后活动: ' + chat.lastActive;
+                
+                // 更新iframe
+                const iframe = document.getElementById('aiIframe');
+                iframe.src = chat.url;
+                
+                // 更新活跃状态
+                this.updateActiveChat(chatId);
+                
+                // 调整iframe大小
+                this.adjustIframeSize();
+                
+                // iframe加载完成后隐藏加载动画
+                iframe.onload = () => {
+                    document.getElementById('loader').classList.remove('active');
+                };
+            }
+            
+            adjustIframeSize() {
+                const iframe = document.getElementById('aiIframe');
+                if (!iframe) return;
+                
+                // 可以在这里添加额外的尺寸调整逻辑
+                try {
+                    const container = document.querySelector('.ai-frame-container');
+                    iframe.contentWindow.postMessage({
+                        type: 'resize',
+                        width: container.clientWidth,
+                        height: container.clientHeight
+                    }, '*');
+                } catch (e) {
+                    console.log('无法发送resize消息:', e);
+                }
+            }
+            
+            updateActiveChat(chatId) {
+                document.querySelectorAll('.history-item').forEach(item => {
+                    item.classList.toggle('active', item.dataset.chatId === chatId);
+                });
+            }
+            
+            saveChats() {
+                localStorage.setItem('ai_chats', JSON.stringify(this.chats));
+            }
+            
+            renderHistory() {
+                const historyList = document.getElementById('historyList');
+                historyList.innerHTML = '';
+                
+                this.chats.forEach(chat => {
+                    const li = document.createElement('li');
+                    li.className = `history-item ${this.currentChatId === chat.id ? 'active' : ''}`;
+                    li.dataset.chatId = chat.id;
+                    li.innerHTML = `
+                        <div>${chat.title}</div>
+                        <div class="history-time">${new Date(chat.timestamp).toLocaleString()}</div>
+                    `;
+                    li.addEventListener('click', () => this.loadChat(chat.id));
+                    historyList.appendChild(li);
+                });
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化粒子背景
+            new Particles();
+            
+            // 初始化聊天管理器
+            new ChatManager();
+        });
+    </script>
+</body>
+</html>

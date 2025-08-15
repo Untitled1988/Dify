@@ -258,7 +258,6 @@ class DifyAPI:
     def download_file(self, file_url: str, save_path: str) -> bool:
         """从Dify下载文件"""
         try:
-            print(save_path)
             headers = {"Authorization": f"Bearer {self.config['API_KEY']}"}
 
             if file_url.startswith("/"):
@@ -289,9 +288,13 @@ class DifyAPI:
         file_url = self.extract_file_url(answer)
         if not file_url:
             return None
-        endwith = '.txt'
-        save_path = f"{Path(file_path).stem}{endwith}"
 
+        # 获取原始文件的目录
+        original_dir = os.path.dirname(file_path)
+        endwith = '.txt'
+        result_filename = f"{Path(file_path).stem}{endwith}"
+        # 组合完整路径
+        save_path = os.path.join(original_dir, result_filename).replace("\\", "/")
         if self.download_file(file_url, save_path):
             return save_path
         return None
@@ -621,12 +624,13 @@ class MarkdownFrame(Frame):
 
 
 class DifyFrame(Frame):
-    """Dify处理页面"""
+    """Dify处理页面 - 支持批量文件处理"""
 
     def __init__(self, parent, app):
         super().__init__(parent)
         self.app = app
         self.dify = DifyAPI(app.config)
+        self.selected_files = []  # 存储选择的文件列表
         self.setup_ui()
 
     def setup_ui(self):
@@ -638,7 +642,7 @@ class DifyFrame(Frame):
         self.api_url_entry.insert(0, self.app.config["DIFY"]["API_BASE_URL"])
 
         Label(self, text="API密钥:").grid(row=1, column=0, padx=5, pady=5, sticky='e')
-        self.api_key_entry = Entry(self, width=50, show="*")
+        self.api_key_entry = Entry(self, width=50)
         self.api_key_entry.grid(row=1, column=1, columnspan=2, padx=5, pady=5)
         self.api_key_entry.insert(0, self.app.config["DIFY"]["API_KEY"])
 
@@ -657,31 +661,47 @@ class DifyFrame(Frame):
         self.enabled_check = ttk.Checkbutton(self, text="启用Dify处理", variable=self.enabled_var)
         self.enabled_check.grid(row=4, column=1, padx=5, pady=5)
 
-        # 文件选择
+        # 文件选择 - 改为多文件选择
         Label(self, text="选择文件:").grid(row=5, column=0, padx=5, pady=5, sticky='e')
-        self.file_entry = Entry(self, width=50)
-        self.file_entry.grid(row=5, column=1, padx=5, pady=5)
 
-        Button(self, text="浏览...", command=self.browse_file).grid(row=5, column=2, padx=5, pady=5)
+        self.file_listbox = Listbox(self, width=60, height=5, selectmode=MULTIPLE)
+        self.file_listbox.grid(row=5, column=1, columnspan=2, padx=5, pady=5)
+
+        scrollbar = Scrollbar(self, orient="vertical")
+        scrollbar.config(command=self.file_listbox.yview)
+        scrollbar.grid(row=5, column=3, sticky='ns')
+        self.file_listbox.config(yscrollcommand=scrollbar.set)
+
+        Button(self, text="添加文件...", command=self.add_files).grid(row=6, column=1, padx=5, pady=5)
+        Button(self, text="移除选中", command=self.remove_selected).grid(row=6, column=2, padx=5, pady=5)
 
         # 处理按钮
-        Button(self, text="开始处理", command=self.process_file).grid(row=6, column=1, pady=10)
+        Button(self, text="开始处理所有文件", command=self.process_files).grid(row=7, column=1, pady=10)
 
         # 日志区域
         self.log_text = Text(self, height=10, width=80, state='disabled')
-        self.log_text.grid(row=7, column=0, columnspan=3, padx=5, pady=5)
+        self.log_text.grid(row=8, column=0, columnspan=3, padx=5, pady=5)
 
         # 滚动条
         scrollbar = ttk.Scrollbar(self, command=self.log_text.yview)
-        scrollbar.grid(row=7, column=3, sticky='ns')
+        scrollbar.grid(row=8, column=3, sticky='ns')
         self.log_text['yscrollcommand'] = scrollbar.set
 
-    def browse_file(self):
-        """浏览文件"""
-        file_path = filedialog.askopenfilename()
-        if file_path:
-            self.file_entry.delete(0, 'end')
-            self.file_entry.insert(0, file_path)
+    def add_files(self):
+        """添加多个文件"""
+        files = filedialog.askopenfilenames()
+        if files:
+            for f in files:
+                if f not in self.selected_files:
+                    self.selected_files.append(f)
+                    self.file_listbox.insert(END, f)
+
+    def remove_selected(self):
+        """移除选中的文件"""
+        selected_indices = self.file_listbox.curselection()
+        for i in reversed(selected_indices):
+            self.selected_files.pop(i)
+            self.file_listbox.delete(i)
 
     def log_message(self, message: str):
         """记录日志"""
@@ -691,8 +711,8 @@ class DifyFrame(Frame):
         self.log_text.config(state='disabled')
         self.app.update()
 
-    def process_file(self):
-        """处理文件"""
+    def process_files(self):
+        """批量处理所有选中的文件"""
         # 更新配置
         self.app.config["DIFY"]["API_BASE_URL"] = self.api_url_entry.get()
         self.app.config["DIFY"]["API_KEY"] = self.api_key_entry.get()
@@ -701,25 +721,33 @@ class DifyFrame(Frame):
         self.app.config["DIFY"]["ENABLED"] = self.enabled_var.get()
         self.app.save_config()
 
-        file_path = self.file_entry.get()
-        if not file_path:
-            messagebox.showerror("错误", "请选择要处理的文件")
+        if not self.selected_files:
+            messagebox.showerror("错误", "请先添加要处理的文件")
             return
 
         # 在后台线程中处理
         def process():
-            self.app.update_status("正在通过Dify处理文件...")
-            self.log_message(f"开始处理文件: {file_path}")
+            self.app.update_status("正在批量处理文件...")
+            self.log_message(f"开始批量处理 {len(self.selected_files)} 个文件")
 
-            result_path = self.dify.process_file(file_path)
-            if result_path:
-                self.log_message(f"处理完成! 结果已保存到: {result_path}")
-                self.app.update_status("Dify处理完成")
-                messagebox.showinfo("成功", "文件处理完成!")
+            success_count = 0
+            for file_path in self.selected_files:
+                self.log_message(f"\n正在处理文件: {file_path}")
+                result_path = self.dify.process_file(file_path)
+                if result_path:
+                    self.log_message(f"处理成功! 结果已保存到: {result_path}")
+                    success_count += 1
+                else:
+                    self.log_message("处理失败!")
+
+            self.log_message(f"\n批量处理完成! 成功: {success_count}, 失败: {len(self.selected_files) - success_count}")
+            self.app.update_status("批量处理完成")
+
+            if success_count == len(self.selected_files):
+                messagebox.showinfo("成功", "所有文件处理成功!")
             else:
-                self.log_message("处理失败!")
-                self.app.update_status("处理失败")
-                messagebox.showerror("错误", "文件处理失败!")
+                messagebox.showwarning("完成",
+                                       f"处理完成! 成功 {success_count} 个, 失败 {len(self.selected_files) - success_count} 个")
 
         threading.Thread(target=process, daemon=True).start()
 

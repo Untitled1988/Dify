@@ -1,10 +1,10 @@
 {
-    "TARGET_DIRECTORY": "C:\\Users\\yiyue\\MinerU",
+    "TARGET_DIRECTORY": "C:/Users/Administrator.DESKTOP-D77FUI2/MinerU",
     "MARKDOWN": {
-        "IMAGE_URL_PREFIX": "https://127.0.0.1/images/"
+        "IMAGE_URL_PREFIX": "http://pic.xn--2br990h.cn/images/"
     },
     "DIFY": {
-        "ENABLED": false,
+        "ENABLED": true,
         "API_BASE_URL": "http://dify.刘竹.cn/v1",
         "API_KEY": "app-rCTnmCw5c7DAZUST1fp4M9nQ",
         "USER_ID": "liuzhu",
@@ -15,7 +15,7 @@
         "HOST": "8.141.18.37",
         "USER": "root",
         "PASS": "Liuzhu5635",
-        "REMOTE_BASE": "2025",
+        "REMOTE_BASE": "/www/wwwroot/8.141.18.37/",
         "PORT": 22
     }
 }
