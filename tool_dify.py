@@ -11,6 +11,7 @@ from tkinter import (
 from tkinter.messagebox import showerror
 from typing import Optional, Dict, Any, List, Tuple
 import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 class ConfigManager:
@@ -32,9 +33,9 @@ class ConfigManager:
             "ENABLED": True,
             "API_KEY": "dataset-30w7iO4HEz404YfOin1wm8rP",
             "PARENT_SEPARATOR": "##",
-            "CHILD_SEPARATOR": "\n",
-            "PARENT_MAX_CHARS": 1024,
-            "CHILD_MAX_CHARS": 512,
+            "CHILD_SEPARATOR": "\\n",
+            "PARENT_MAX_CHARS": 4000,
+            "CHILD_MAX_CHARS": 1024,
             "INDEXING_TECHNIQUE": "high_quality"
         },
         "SFTP": {
@@ -89,6 +90,9 @@ class MarkdownProcessor:
 
     def __init__(self, config: Dict[str, Any]):
         self.config = config
+        # 预编译常用正则以提升性能
+        self.IMG_RE = re.compile(r'^!\[\]\((images/[a-f0-9]+\.jpg)\)\s*$')
+        self.TITLE_RE = re.compile(r'^#+\s*(.*?)\s*$')
 
     def process_markdown_content(self, content: str) -> str:
         """处理Markdown内容"""
@@ -99,7 +103,7 @@ class MarkdownProcessor:
 
         while i < n:
             line = lines[i]
-            img_match = re.match(r'^!\[\]\((images/[a-f0-9]+\.jpg)\)\s*$', line)
+            img_match = self.IMG_RE.match(line)
 
             if img_match:
                 img_path = img_match.group(1)
@@ -108,7 +112,7 @@ class MarkdownProcessor:
                 if next_line == "":
                     caption = None
                     for j in range(i - 1, -1, -1):
-                        title_match = re.match(r'^#+\s*(.*?)\s*$', lines[j])
+                        title_match = self.TITLE_RE.match(lines[j])
                         if title_match:
                             caption = title_match.group(1)
                             break
@@ -438,20 +442,23 @@ class DifyDatasetClient:
         
         print(f"=== 调试信息结束 ===\n")
 
-        files = {
-            'file': (file_path.name, open(file_path, 'rb'), 'application/octet-stream')
-        }
-        
+        # 准备要发送的数据
         data = {
             'data': json_meta
         }
-        
-        # 发送请求并检查响应
-        print(f"发送请求到: {url}")
-        print(f"请求头: {dict(self.session.headers)}")
-        print(f"请求数据: {data}")
-        
-        resp = self.session.post(url, files=files, data=data, timeout=self.timeout)
+
+        # 使用 with 确保文件句柄在请求后正确关闭，并在文件打开时发送请求
+        with open(file_path, 'rb') as f:
+            files = {
+                'file': (file_path.name, f, 'application/octet-stream')
+            }
+
+            # 发送请求并检查响应
+            print(f"发送请求到: {url}")
+            print(f"请求头: {dict(self.session.headers)}")
+            print(f"请求数据: {data}")
+
+            resp = self.session.post(url, files=files, data=data, timeout=self.timeout)
         
         # 检查响应
         print(f"响应状态码: {resp.status_code}")
@@ -926,31 +933,43 @@ class DifyFrame(Frame):
             messagebox.showerror("错误", "请先添加要处理的文件")
             return
 
-        # 在后台线程中处理
-        def process():
+        # 并发处理，使用线程池并在主线程安全更新UI
+        def process_concurrent(max_workers: int = 4):
             self.app.update_status("正在批量处理文件...")
             self.log_message(f"开始批量处理 {len(self.selected_files)} 个文件")
 
             success_count = 0
-            for file_path in self.selected_files:
-                self.log_message(f"\n正在处理文件: {file_path}")
-                result_path = self.dify.process_file(file_path)
-                if result_path:
-                    self.log_message(f"处理成功! 结果已保存到: {result_path}")
-                    success_count += 1
+            futures = {}
+            # 限制并发数以防 API 限流
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                for file_path in self.selected_files:
+                    futures[executor.submit(self.dify.process_file, file_path)] = file_path
+
+                for fut in as_completed(futures):
+                    file_path = futures[fut]
+                    try:
+                        result_path = fut.result()
+                        if result_path:
+                            # 使用主线程安全的更新
+                            self.app.after(0, lambda p=file_path, r=result_path: self.log_message(f"处理成功: {p} -> {r}"))
+                            success_count += 1
+                        else:
+                            self.app.after(0, lambda p=file_path: self.log_message(f"处理失败: {p}"))
+                    except Exception as e:
+                        self.app.after(0, lambda p=file_path, e=e: self.log_message(f"处理异常 {p}: {e}"))
+
+            # 完成后在主线程展示结果
+            def finish():
+                self.log_message(f"\n批量处理完成! 成功: {success_count}, 失败: {len(self.selected_files) - success_count}")
+                self.app.update_status("批量处理完成")
+                if success_count == len(self.selected_files):
+                    messagebox.showinfo("成功", "所有文件处理成功!")
                 else:
-                    self.log_message("处理失败!")
+                    messagebox.showwarning("完成", f"处理完成! 成功 {success_count} 个, 失败 {len(self.selected_files) - success_count} 个")
 
-            self.log_message(f"\n批量处理完成! 成功: {success_count}, 失败: {len(self.selected_files) - success_count}")
-            self.app.update_status("批量处理完成")
+            self.app.after(0, finish)
 
-            if success_count == len(self.selected_files):
-                messagebox.showinfo("成功", "所有文件处理成功!")
-            else:
-                messagebox.showwarning("完成",
-                                       f"处理完成! 成功 {success_count} 个, 失败 {len(self.selected_files) - success_count} 个")
-
-        threading.Thread(target=process, daemon=True).start()
+        threading.Thread(target=process_concurrent, args=(4,), daemon=True).start()
 
 
 class DifyDatasetFrame(Frame):
