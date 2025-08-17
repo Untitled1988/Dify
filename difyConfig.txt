@@ -6,7 +6,7 @@
     "DIFY": {
         "ENABLED": true,
         "API_BASE_URL": "http://dify.刘竹.cn/v1",
-        "API_KEY": "app-rCTnmCw5c7DAZUST1fp4M9nQ",
+        "API_KEY": "app-YqCajCt1d7qFYVHlDR80GEC5",
         "USER_ID": "liuzhu",
         "PROCESS_QUERY": "请帮我处理这个文档"
     },

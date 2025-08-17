@@ -11,6 +11,7 @@ from tkinter import (
 from tkinter.messagebox import showerror
 from typing import Optional, Dict, Any, List, Tuple
 import threading
+import time
 
 
 class ConfigManager:
@@ -24,7 +25,7 @@ class ConfigManager:
         "DIFY": {
             "ENABLED": True,
             "API_BASE_URL": "http://dify.刘竹.cn/v1",
-            "API_KEY": "app-rCTnmCw5c7DAZUST1fp4M9nQ",
+            "API_KEY": "app-YqCajCt1d7qFYVHlDR80GEC5",
             "USER_ID": "liuzhu",
             "PROCESS_QUERY": "请帮我处理这个文档"
         },
@@ -220,59 +221,70 @@ class DifyAPI:
     """Dify API交互"""
 
     def __init__(self, config: Dict[str, Any]):
+        # 使用传入的整个配置字典以便后续可扩展
         self.config = config["DIFY"]
+        # 使用 session 以便重试和连接复用
+        self.session = requests.Session()
+        # 默认头部，仅包含认证信息，调用时仍可覆盖
+        self.session.headers.update({"Authorization": f"Bearer {self.config['API_KEY']}"})
+        self.timeout = 30
 
     def upload_file(self, file_path: str) -> Optional[str]:
         """上传文件到Dify"""
         try:
             url = f"{self.config['API_BASE_URL']}/files/upload"
-            headers = {"Authorization": f"Bearer {self.config['API_KEY']}"}
 
             with open(file_path, "rb") as f:
                 files = {"file": (Path(file_path).name, f, "application/octet-stream")}
                 data = {"user": self.config["USER_ID"]}
-                resp = requests.post(url, headers=headers, files=files, data=data)
+                resp = self.session.post(url, files=files, data=data, timeout=self.timeout)
                 resp.raise_for_status()
-                return resp.json()["id"]
+                return resp.json().get("id")
         except Exception as e:
             print(f"Dify上传失败: {e}")
             return None
 
     def trigger_workflow(self, file_id: str) -> Optional[Dict[str, Any]]:
         """触发工作流"""
-        try:
-            url = f"{self.config['API_BASE_URL']}/chat-messages"
-            headers = {"Authorization": f"Bearer {self.config['API_KEY']}"}
+        # 采用重试和兼容多种可能的 endpoint 名称
+        endpoints = ["/chat-messages", "/chat_messages"]
+        payload = {
+            "query": self.config.get("PROCESS_QUERY", "请帮我处理这个文档"),
+            "inputs": {
+                "file": {
+                    "type": "document",
+                    "transfer_method": "local_file",
+                    "upload_file_id": file_id
+                }
+            },
+            "response_mode": "blocking",
+            "user": self.config["USER_ID"]
+        }
 
-            payload = {
-                "query": self.config.get("PROCESS_QUERY", "请帮我处理这个文档"),
-                "inputs": {
-                    "file": {
-                        "type": "document",
-                        "transfer_method": "local_file",
-                        "upload_file_id": file_id
-                    }
-                },
-                "response_mode": "blocking",
-                "user": self.config["USER_ID"]
-            }
+        base = self.config['API_BASE_URL'].rstrip('/')
+        for attempt in range(3):
+            for ep in endpoints:
+                url = base + ep
+                try:
+                    resp = self.session.post(url, json=payload, timeout=self.timeout)
+                    resp.raise_for_status()
+                    return resp.json()
+                except requests.exceptions.RequestException as e:
+                    # 记录并在外层重试
+                    print(f"触发工作流失败 (attempt={attempt}, endpoint={ep}): {e}")
+            # 指数退避
+            time.sleep(2 ** attempt)
 
-            resp = requests.post(url, headers=headers, json=payload)
-            resp.raise_for_status()
-            return resp.json()
-        except Exception as e:
-            print(f"触发工作流失败: {e}")
-            return None
+        return None
 
     def download_file(self, file_url: str, save_path: str) -> bool:
         """从Dify下载文件"""
         try:
-            headers = {"Authorization": f"Bearer {self.config['API_KEY']}"}
-
             if file_url.startswith("/"):
+                # 将相对路径拼接为完整 URL
                 file_url = self.config["API_BASE_URL"].replace("/v1", "") + file_url
 
-            with requests.get(file_url, headers=headers, stream=True) as resp:
+            with self.session.get(file_url, stream=True, timeout=self.timeout) as resp:
                 resp.raise_for_status()
                 with open(save_path, "wb") as f:
                     for chunk in resp.iter_content(chunk_size=8192):
@@ -311,8 +323,17 @@ class DifyAPI:
     @staticmethod
     def extract_file_url(answer_text: str) -> Optional[str]:
         """从回答中提取文件URL"""
+        # 支持两种形式: (相对路径) 或 完整的绝对 URL
+        # 先尝试相对路径形式
         match = re.search(r'\((/files/[^)]+)\)', answer_text)
-        return match.group(1) if match else None
+        if match:
+            return match.group(1)
+
+        # 再尝试绝对 URL
+        match_abs = re.search(r'(https?://[^\s)"\']+/files/[^\s)"\']+)', answer_text)
+        if match_abs:
+            return match_abs.group(1)
+        return None
 
 
 class DifyDatasetClient:

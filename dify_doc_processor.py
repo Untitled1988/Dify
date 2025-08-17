@@ -3,7 +3,7 @@ import re
 import os
 
 API_BASE_URL = "http://dify.刘竹.cn/v1"
-API_KEY = "app-rCTnmCw5c7DAZUST1fp4M9nQ"
+API_KEY = "app-YqCajCt1d7qFYVHlDR80GEC5"
 LOCAL_FILE_PATH = r"C:\Users\liuleo2\OneDrive - Organon\SFE-销售指标设置.docx"
 USER_ID = "liuzhu"
 
