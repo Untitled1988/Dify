@@ -4,7 +4,7 @@ import os
 
 API_BASE_URL = "http://dify.刘竹.cn/v1"
 API_KEY = "app-YqCajCt1d7qFYVHlDR80GEC5"
-LOCAL_FILE_PATH = r"C:\Users\liuleo2\OneDrive - Organon\SFE-销售指标设置.docx"
+LOCAL_FILE_PATH = r"C:\Users\Administrator.DESKTOP-D77FUI2\MinerU\业务知识_CRM.pdf-6491e125-9d01-4ff1-8e2c-7c217c6f1fb8\业务知识_CRM.md"
 USER_ID = "liuzhu"
 
 headers = {
@@ -15,7 +15,7 @@ def upload_file():
     url = f"{API_BASE_URL}/files/upload"
     with open(LOCAL_FILE_PATH, "rb") as f:
         files = {
-            "file": ("1.docx", f, "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+            "file": ("业务知识_CRM.md", f, "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
         }
         data = {"user": USER_ID}
         resp = requests.post(url, headers=headers, files=files, data=data)

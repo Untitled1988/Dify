@@ -292,7 +292,7 @@ class DifyAPI:
         # 获取原始文件的目录
         original_dir = os.path.dirname(file_path)
         endwith = '.txt'
-        result_filename = f"{Path(file_path).stem}{endwith}"
+        result_filename = f"{Path(file_path).stem}_result{endwith}"
         # 组合完整路径
         save_path = os.path.join(original_dir, result_filename).replace("\\", "/")
         if self.download_file(file_url, save_path):
