@@ -10,6 +10,15 @@
         "USER_ID": "liuzhu",
         "PROCESS_QUERY": "请帮我处理这个文档"
     },
+    "DIFY_DATASET": {
+        "ENABLED": true,
+        "API_KEY": "dataset-30w7iO4HEz404YfOin1wm8rP",
+        "PARENT_SEPARATOR": "##",
+        "CHILD_SEPARATOR": "\\n",
+        "PARENT_MAX_CHARS": 4000,
+        "CHILD_MAX_CHARS": 512,
+        "INDEXING_TECHNIQUE": "high_quality"
+    },
     "SFTP": {
         "ENABLED": true,
         "HOST": "8.141.18.37",
