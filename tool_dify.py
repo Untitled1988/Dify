@@ -32,9 +32,9 @@ class ConfigManager:
             "ENABLED": True,
             "API_KEY": "dataset-30w7iO4HEz404YfOin1wm8rP",
             "PARENT_SEPARATOR": "##",
-            "CHILD_SEPARATOR": "\n",
-            "PARENT_MAX_CHARS": 1024,
-            "CHILD_MAX_CHARS": 512,
+            "CHILD_SEPARATOR": "\\n",
+            "PARENT_MAX_CHARS": 4000,
+            "CHILD_MAX_CHARS": 4000,
             "INDEXING_TECHNIQUE": "high_quality"
         },
         "SFTP": {
