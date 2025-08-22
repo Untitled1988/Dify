@@ -38,7 +38,7 @@
 这里放网址截图
 
 <div align="center">
-  <img src="assets/demo.jpg" alt="demo">
+  <img src="assets/demo.png" alt="demo">
 </div>
 
 ---
