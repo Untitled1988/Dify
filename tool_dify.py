@@ -183,7 +183,7 @@ class MarkdownProcessor:
             return False
 
     def process_pdf_folders(self, target_dir: str, progress_callback=None) -> List[str]:
-        """处理目录中的所有PDF文件夹"""
+        """处理目录中每个子文件夹下所有.md文件"""
         processed_files = []
         target_path = Path(target_dir)
 
@@ -191,28 +191,45 @@ class MarkdownProcessor:
             if not folder.is_dir():
                 continue
 
-            new_name_base = self.extract_name_from_pdf_folder(folder.name)
-            if not new_name_base:
-                continue
-
-            old_md_path = folder / "full.md"
-            if not old_md_path.exists():
-                continue
-
-            new_md_name = f"{new_name_base}.md"
-            new_md_path = folder / new_md_name
-
-            try:
-                old_md_path.rename(new_md_path)
-                images_folder = folder / "images"
-                if images_folder.exists():
-                    if self.rename_images_and_update_md(new_md_path, images_folder):
-                        processed_files.append(str(new_md_path))
+            images_folder = folder / "images"
+            for md_file in folder.glob("*.md"):
+                try:
+                    # 如果是full.md，重命名为 文件夹名去掉-UUID和.pdf后的部分.md
+                    if md_file.name == "full.md":
+                        # 去掉.pdf-UUID
+                        name = folder.name
+                        # 先去掉-UUID
+                        name = re.sub(r'-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', '', name, flags=re.IGNORECASE)
+                        # 再去掉最后一个点及其后缀（支持任意扩展名）
+                        name = re.sub(r'\.[^.]+$', '', name)
+                        new_md_path = folder / f"{name}.md"
+                        md_file.rename(new_md_path)
+                        md_file = new_md_path
+                    if images_folder.exists():
+                        if self.rename_images_and_update_md(md_file, images_folder):
+                            processed_files.append(str(md_file))
+                            if progress_callback:
+                                progress_callback(str(md_file))
+                        else:
+                            # 没有图片也处理md内容
+                            with open(md_file, 'r', encoding='utf-8') as f:
+                                content = self.process_markdown_content(f.read())
+                            with open(md_file, 'w', encoding='utf-8') as f:
+                                f.write(content)
+                            processed_files.append(str(md_file))
+                            if progress_callback:
+                                progress_callback(str(md_file))
+                    else:
+                        # 没有图片也处理md内容
+                        with open(md_file, 'r', encoding='utf-8') as f:
+                            content = self.process_markdown_content(f.read())
+                        with open(md_file, 'w', encoding='utf-8') as f:
+                            f.write(content)
+                        processed_files.append(str(md_file))
                         if progress_callback:
-                            progress_callback(str(new_md_path))
-            except Exception as e:
-                print(f"处理文件夹 {folder} 失败: {e}")
-
+                            progress_callback(str(md_file))
+                except Exception as e:
+                    print(f"处理文件 {md_file} 失败: {e}")
         return processed_files
 
 
