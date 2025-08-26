@@ -784,25 +784,31 @@ class MarkdownFrame(Frame):
         self.dir_entry = Entry(self, width=50)
         self.dir_entry.grid(row=0, column=1, padx=5, pady=5)
         self.dir_entry.insert(0, self.app.config["TARGET_DIRECTORY"])
-
         Button(self, text="浏览...", command=self.browse_directory).grid(row=0, column=2, padx=5, pady=5)
 
+        # 导出目录选择
+        Label(self, text="导出目录:").grid(row=1, column=0, padx=5, pady=5, sticky='e')
+        self.export_dir_entry = Entry(self, width=50)
+        self.export_dir_entry.grid(row=1, column=1, padx=5, pady=5)
+        self.export_dir_entry.insert(0, "")
+        Button(self, text="浏览...", command=self.browse_export_directory).grid(row=1, column=2, padx=5, pady=5)
+
         # 图片URL前缀
-        Label(self, text="图片URL前缀:").grid(row=1, column=0, padx=5, pady=5, sticky='e')
+        Label(self, text="图片URL前缀:").grid(row=2, column=0, padx=5, pady=5, sticky='e')
         self.prefix_entry = Entry(self, width=50)
-        self.prefix_entry.grid(row=1, column=1, padx=5, pady=5)
+        self.prefix_entry.grid(row=2, column=1, padx=5, pady=5)
         self.prefix_entry.insert(0, self.app.config["MARKDOWN"].get("IMAGE_URL_PREFIX", ""))
 
         # 处理按钮
-        Button(self, text="开始处理", command=self.start_processing).grid(row=2, column=1, pady=10)
+        Button(self, text="开始处理", command=self.start_processing).grid(row=3, column=1, pady=10)
 
         # 日志区域
         self.log_text = Text(self, height=15, width=80, state='disabled')
-        self.log_text.grid(row=3, column=0, columnspan=3, padx=5, pady=5)
+        self.log_text.grid(row=4, column=0, columnspan=3, padx=5, pady=5)
 
         # 滚动条
         scrollbar = ttk.Scrollbar(self, command=self.log_text.yview)
-        scrollbar.grid(row=3, column=3, sticky='ns')
+        scrollbar.grid(row=4, column=3, sticky='ns')
         self.log_text['yscrollcommand'] = scrollbar.set
 
     def browse_directory(self):
@@ -811,6 +817,13 @@ class MarkdownFrame(Frame):
         if dir_path:
             self.dir_entry.delete(0, 'end')
             self.dir_entry.insert(0, dir_path)
+
+    def browse_export_directory(self):
+        """浏览导出目录"""
+        dir_path = filedialog.askdirectory()
+        if dir_path:
+            self.export_dir_entry.delete(0, 'end')
+            self.export_dir_entry.insert(0, dir_path)
 
     def log_message(self, message: str):
         """记录日志"""
@@ -827,10 +840,17 @@ class MarkdownFrame(Frame):
         self.app.config["MARKDOWN"]["IMAGE_URL_PREFIX"] = self.prefix_entry.get()
         self.app.save_config()
 
+        export_dir = self.export_dir_entry.get().strip()
+        if not export_dir:
+            messagebox.showerror("错误", "请先选择导出目录")
+            return
+
         # 清空日志
         self.log_text.config(state='normal')
         self.log_text.delete(1.0, 'end')
         self.log_text.config(state='disabled')
+
+        import shutil
 
         # 在后台线程中处理
         def process():
@@ -842,9 +862,30 @@ class MarkdownFrame(Frame):
                 progress_callback=lambda f: self.log_message(f"已处理: {f}")
             )
 
+            # 复制md和images到导出目录
+            images_export_dir = Path(export_dir) / "images"
+            if not images_export_dir.exists():
+                images_export_dir.mkdir(parents=True, exist_ok=True)
+            for md_path in processed_files:
+                try:
+                    md_src = Path(md_path)
+                    md_dst = Path(export_dir) / md_src.name
+                    shutil.copy2(md_src, md_dst)
+                    self.log_message(f"已复制: {md_src} -> {md_dst}")
+                    # 复制images文件夹（如果存在）下所有图片到导出目录/images
+                    images_src = md_src.parent / "images"
+                    if images_src.exists() and images_src.is_dir():
+                        for img_file in images_src.iterdir():
+                            if img_file.is_file():
+                                img_dst = images_export_dir / img_file.name
+                                shutil.copy2(img_file, img_dst)
+                                self.log_message(f"已复制图片: {img_file} -> {img_dst}")
+                except Exception as e:
+                    self.log_message(f"复制失败: {md_path}，原因: {e}")
+
             self.log_message(f"\n处理完成! 共处理了 {len(processed_files)} 个文件")
             self.app.update_status("Markdown处理完成")
-            messagebox.showinfo("完成", "Markdown处理完成!")
+            messagebox.showinfo("完成", "Markdown处理和导出完成!")
 
         threading.Thread(target=process, daemon=True).start()
 
