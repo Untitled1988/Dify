@@ -1,0 +1,12 @@
+{
+  "miniprogramRoot": "./",
+  "projectname": "AI欢乐助手",
+  "description": "科技乐园AI助手微信小程序",
+  "appid": "",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true
+  },
+  "compileType": "miniprogram"
+}

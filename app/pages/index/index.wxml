@@ -1,0 +1,11 @@
+<view class="container">
+  <view class="navbar">
+    <image class="logo" src="/assets/logo.png" mode="aspectFit" />
+    <text class="title">AI欢乐助手</text>
+  </view>
+  <view class="main">
+    <view class="ai-area">
+      <web-view src="https://dify.刘竹.cn/chatbot/Y28k8Jyd9rdepu8p" />
+    </view>
+  </view>
+</view>

@@ -1,0 +1,13 @@
+{
+  "pages": [
+    "pages/index/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "AI欢乐助手 | 科技乐园",
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#f0f4ff",
+    "navigationBarTextStyle": "black"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}
