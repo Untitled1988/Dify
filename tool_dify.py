@@ -689,7 +689,8 @@ class SFTPFrame(Frame):
             for f in files:
                 if f not in self.selected_files:
                     self.selected_files.append(f)
-                    self.file_listbox.insert(END, f)
+                    # 只显示文件名
+                    self.file_listbox.insert(END, os.path.basename(f))
             self.update_remote_paths()
 
     def remove_selected(self):
@@ -961,7 +962,17 @@ class DifyFrame(Frame):
             for f in files:
                 if f not in self.selected_files:
                     self.selected_files.append(f)
-                    self.file_listbox.insert(END, f)
+                    self.file_listbox.insert(END, os.path.basename(f))
+
+    def clear_file_marks(self):
+        """清除所有文件的标记（对号/叉号）和颜色"""
+        for i, f in enumerate(self.selected_files):
+            self.file_listbox.delete(i)
+        for f in self.selected_files:
+            self.file_listbox.insert(END, os.path.basename(f))
+        # 恢复默认前景色
+        for i in range(self.file_listbox.size()):
+            self.file_listbox.itemconfig(i, foreground='black')
 
     def remove_selected(self):
         """移除选中的文件"""
@@ -979,8 +990,7 @@ class DifyFrame(Frame):
         self.app.update()
 
     def process_files(self):
-        """批量处理所有选中的文件"""
-        # 更新配置
+        """批量处理所有选中的文件，并在列表中标记成功/失败"""
         self.app.config["DIFY"]["API_BASE_URL"] = self.api_url_entry.get()
         self.app.config["DIFY"]["API_KEY"] = self.api_key_entry.get()
         self.app.config["DIFY"]["USER_ID"] = self.user_id_entry.get()
@@ -992,20 +1002,41 @@ class DifyFrame(Frame):
             messagebox.showerror("错误", "请先添加要处理的文件")
             return
 
-        # 在后台线程中处理
         def process():
             self.app.update_status("正在批量处理文件...")
             self.log_message(f"开始批量处理 {len(self.selected_files)} 个文件")
 
+            # 处理前清除所有标记
+            self.file_listbox.delete(0, END)
+            for f in self.selected_files:
+                self.file_listbox.insert(END, os.path.basename(f))
+            for i in range(self.file_listbox.size()):
+                self.file_listbox.itemconfig(i, foreground='black')
+
             success_count = 0
-            for file_path in self.selected_files:
+            for idx, file_path in enumerate(self.selected_files):
+                # 标记为处理中
+                processing_name = os.path.basename(file_path) + " ...处理中..."
+                self.file_listbox.delete(idx)
+                self.file_listbox.insert(idx, processing_name)
+                self.file_listbox.itemconfig(idx, foreground='blue')
                 self.log_message(f"\n正在处理文件: {file_path}")
+                self.app.update()  # 立即刷新界面
                 result_path = self.dify.process_file(file_path)
+                # 更新列表项文本和颜色
                 if result_path:
                     self.log_message(f"处理成功! 结果已保存到: {result_path}")
+                    display_name = os.path.basename(file_path) + " ✔"
+                    self.file_listbox.delete(idx)
+                    self.file_listbox.insert(idx, display_name)
+                    self.file_listbox.itemconfig(idx, foreground='green')
                     success_count += 1
                 else:
                     self.log_message("处理失败!")
+                    display_name = os.path.basename(file_path) + " ✖"
+                    self.file_listbox.delete(idx)
+                    self.file_listbox.insert(idx, display_name)
+                    self.file_listbox.itemconfig(idx, foreground='red')
 
             self.log_message(f"\n批量处理完成! 成功: {success_count}, 失败: {len(self.selected_files) - success_count}")
             self.app.update_status("批量处理完成")
@@ -1112,7 +1143,7 @@ class DifyDatasetFrame(Frame):
             for f in files:
                 if f not in self.selected_files:
                     self.selected_files.append(f)
-                    self.file_listbox.insert(END, f)
+                    self.file_listbox.insert(END, os.path.basename(f))
 
     def remove_selected(self):
         """移除选中的文件"""
@@ -1143,8 +1174,7 @@ class DifyDatasetFrame(Frame):
         self.app.update()
 
     def upload_to_datasets(self):
-        """上传文件到知识库数据集"""
-        # 更新配置
+        """上传文件到知识库数据集，并在列表中标记状态"""
         self.app.config["DIFY"]["API_BASE_URL"] = self.api_url_entry.get()
         self.app.config["DIFY_DATASET"]["API_KEY"] = self.dataset_api_key_entry.get()
         self.app.config["DIFY_DATASET"]["PARENT_SEPARATOR"] = self.parent_sep_entry.get()
@@ -1162,7 +1192,6 @@ class DifyDatasetFrame(Frame):
             messagebox.showerror("错误", "没有可用的数据集，请先刷新数据集列表")
             return
 
-        # 在后台线程中上传
         def upload():
             self.app.update_status("正在上传文件到知识库...")
             self.log_message(f"开始批量上传 {len(self.selected_files)} 个文件到知识库")
@@ -1174,22 +1203,46 @@ class DifyDatasetFrame(Frame):
             name_to_id = build_name_to_id(self.datasets)
             prefix_to_dataset = build_dataset_name_map()
 
+            # 清除所有标记
+            self.file_listbox.delete(0, END)
+            for f in self.selected_files:
+                self.file_listbox.insert(END, os.path.basename(f))
+            for i in range(self.file_listbox.size()):
+                self.file_listbox.itemconfig(i, foreground='black')
+
             total = 0
             success = 0
-            for file_path in self.selected_files:
+            for idx, file_path in enumerate(self.selected_files):
                 total += 1
                 file_path_obj = Path(file_path)
+
+                # 标记为处理中
+                processing_name = os.path.basename(file_path) + " ...处理中..."
+                self.file_listbox.delete(idx)
+                self.file_listbox.insert(idx, processing_name)
+                self.file_listbox.itemconfig(idx, foreground='blue')
+                self.app.update()
 
                 # 根据文件名前缀确定数据集
                 ds_name = resolve_dataset_name_by_prefix(file_path_obj.name, prefix_to_dataset)
                 if not ds_name:
                     self.log_message(
                         f"跳过 {file_path_obj.name}: 未知前缀。期望的前缀: {list(prefix_to_dataset.keys())}")
+                    # 标记为失败
+                    fail_name = os.path.basename(file_path) + " ✖"
+                    self.file_listbox.delete(idx)
+                    self.file_listbox.insert(idx, fail_name)
+                    self.file_listbox.itemconfig(idx, foreground='red')
                     continue
 
                 ds_id = name_to_id.get(ds_name)
                 if not ds_id:
                     self.log_message(f"跳过 {file_path_obj.name}: 数据集 '{ds_name}' 在工作区中未找到")
+                    # 标记为失败
+                    fail_name = os.path.basename(file_path) + " ✖"
+                    self.file_listbox.delete(idx)
+                    self.file_listbox.insert(idx, fail_name)
+                    self.file_listbox.itemconfig(idx, foreground='red')
                     continue
 
                 try:
@@ -1210,6 +1263,11 @@ class DifyDatasetFrame(Frame):
                     doc_id = resp.get('document', {}).get('id') or resp.get('id')
                     self.log_message(
                         f"成功上传 {file_path_obj.name} 到数据集 '{ds_name}' (ID={ds_id})。文档ID: {doc_id}")
+                    # 标记为成功
+                    success_name = os.path.basename(file_path) + " ✔"
+                    self.file_listbox.delete(idx)
+                    self.file_listbox.insert(idx, success_name)
+                    self.file_listbox.itemconfig(idx, foreground='green')
                     success += 1
                 except requests.HTTPError as e:
                     try:
@@ -1217,8 +1275,16 @@ class DifyDatasetFrame(Frame):
                     except Exception:
                         err = e.response.text if e.response is not None else str(e)
                     self.log_message(f"上传失败 {file_path_obj.name}: {err}")
+                    fail_name = os.path.basename(file_path) + " ✖"
+                    self.file_listbox.delete(idx)
+                    self.file_listbox.insert(idx, fail_name)
+                    self.file_listbox.itemconfig(idx, foreground='red')
                 except Exception as e:
                     self.log_message(f"上传失败 {file_path_obj.name}: {e}")
+                    fail_name = os.path.basename(file_path) + " ✖"
+                    self.file_listbox.delete(idx)
+                    self.file_listbox.insert(idx, fail_name)
+                    self.file_listbox.itemconfig(idx, foreground='red')
 
             self.log_message(f"\n批量上传完成! 成功: {success}, 失败: {total - success}")
             self.app.update_status("知识库上传完成")
