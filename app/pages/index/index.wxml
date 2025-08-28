@@ -1,11 +1,74 @@
-<view class="container">
-  <view class="navbar">
-    <image class="logo" src="/assets/logo.png" mode="aspectFit" />
-    <text class="title">AI欢乐助手</text>
+<!-- 粒子背景和科技装饰图标 -->
+<image class="tech-icon tech-icon-1" src="../../assets/robot.jpg" mode="aspectFit" />
+<image class="tech-icon tech-icon-2" src="../../assets/robot.jpg" mode="aspectFit" />
+<image class="tech-icon tech-icon-3" src="../../assets/robot.jpg" mode="aspectFit" />
+
+<!-- 导航栏 -->
+<view class="navbar">
+  <button class="toggle-sidebar" id="toggleSidebar">☰</button>
+  <view class="nav-brand">
+    <image src="../../assets/logo.png" class="nav-logo" mode="aspectFit" />
+    <text>AI欢乐助手</text>
   </view>
-  <view class="main">
-    <view class="ai-area">
-      <web-view src="https://dify.刘竹.cn/chatbot/Y28k8Jyd9rdepu8p" />
+  <button class="btn btn-primary" bindtap="onNewChat">+ 新建对话</button>
+</view>
+
+<view class="main-container">
+  <!-- 左侧面板 -->
+  <view class="info-panel" id="infoPanel">
+    <view class="logo">
+      <image src="../../assets/robot.jpg" mode="aspectFit" />
+      <text>CEDC 维灵小工具</text>
+    </view>
+    <view>
+      <text class="h2">智能助手</text>
+      <text class="desc">让科技变得有趣！我们的AI助手不仅能解决问题，还能给您带来欢乐的互动体验。</text>
+    </view>
+    <view>
+      <text class="h2">特色功能</text>
+      <view class="feature-list">
+        <view class="feature-item">幽默风趣的对话风格</view>
+        <view class="feature-item">智能表情和动画反馈</view>
+        <view class="feature-item">个性化互动体验</view>
+        <view class="feature-item">多主题切换功能</view>
+        <view class="feature-item">学习您的喜好</view>
+      </view>
+    </view>
+    <view class="conversation-history">
+      <view class="history-header" id="toggleHistory">
+        <text>对话历史</text>
+        <text class="arrow">▼</text>
+      </view>
+      <view class="history-list" id="historyList">
+        <block wx:for="{{history}}" wx:key="id">
+          <view class="history-item {{currentChatId === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="onHistoryTap">
+            <view>{{item.title}}</view>
+            <view class="history-time">{{item.time}}</view>
+          </view>
+        </block>
+      </view>
+    </view>
+  </view>
+
+  <!-- 主内容区 -->
+  <view class="content-area">
+    <view class="ai-header">
+      <view class="ai-title">
+        <image src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" mode="aspectFit" />
+        <text>{{currentTitle}}</text>
+      </view>
+      <view class="ai-actions">
+        <text id="chatTime">{{chatTime}}</text>
+      </view>
+    </view>
+    <view class="ai-wrapper">
+      <view class="loader {{loading ? 'active' : ''}}">
+        <view class="loader-circle"></view>
+        <view class="loader-circle"></view>
+      </view>
+      <view class="ai-frame-container">
+        <web-view src="{{iframeUrl}}"></web-view>
+      </view>
     </view>
   </view>
 </view>
