@@ -1,11 +1,16 @@
+<p align="center">
+  <a href="https://www.siliconflow.cn/">
+    <img src="https://img.shields.io/badge/Siliconflow-API-purple.svg" alt="Siliconflow API">
+  </a>
+</p>
 <div align="center">
   <img src="assets/logo.png" alt="logo">
 </div>
 
 <div align="center">
-  A powerful AI knowledge base system for the pharmaceutical industry, built on Dify.  
+  A powerful AI knowledge base system based on Dify.
   <br>
-  This project integrates document cleaning, intelligent chunking, and a web frontend to enable real-time updates and correction management for domain knowledge bases.
+  This project integrates document cleaning, intelligent chunking, and a web frontend to enable real-time updates and correction management for domain knowledge bases in any field.
 </div>
 
 <p align="center">
@@ -62,8 +67,8 @@
 ---
 
 ## Features
-- **📄 Document Cleaning with MinerU**: Automatically cleans raw documents from the pharmaceutical domain to prepare for downstream processing.
-- **🔁 Intelligent Chunking via Dify Workflow API**: Uses Dify's powerful workflow interface to split documents into parent-child structured chunks.
+- **📄 Document Cleaning with MinerU**: Cleans raw documents to prepare for downstream intelligent processing.
+- **🔁 Intelligent Chunking via Dify Workflow API**: Uses Dify's workflow interface to split documents into parent-child structured chunks.
 - **📚 Auto-sync to Knowledge Base**: Automatically syncs cleaned and chunked content to the specified Dify knowledge base.
 - **🌐 Web Frontend**: An intuitive web interface where users can:
   - Use AI Chat to query knowledge base content
@@ -75,38 +80,32 @@
 ### Todo
 
 - ✅ **Document Preprocessing (MinerU Integration)**
-  - Completed initial cleaning of raw pharma documents with MinerU, including removing irrelevant content and normalizing image formats.
+  - Completed initial cleaning of raw documents with MinerU, including removing irrelevant content and normalizing image formats.
   - Outputs structured cleaned text for subsequent processing.
-
 
 - ✅ **Invoke Dify API for Parent-Child Paragraph Chunking (Dify API - Chunking Workflow)**
   - Automatically calls Dify's Workflow API via Python.
   - Implements parent-child hierarchical chunking while preserving logical context for downstream knowledge base syncing.
 
-
 - ✅ **Knowledge Base Auto Sync**
-  - Goal: automatically submit processed chunks to the corresponding knowledge base (matching by document or category).
-  - Currently data can be uploaded via scripts, auto classification, but incremental update logic is under development.
+  - Automatically submits processed chunks to the corresponding knowledge base (matching by document or category).
+  - Data can be uploaded via scripts and auto-classified; incremental update logic is under development.
   - Plans include retry on errors, conflict detection, and upload success logging.
 
-
 - ✅ **Multi-document Processing and Batch Import**
-  - Future support for uploading multiple documents for automated cleaning + chunking + uploading.
-  - Support category-based organization of knowledge content.
-
+  - Supports uploading multiple documents for automated cleaning, chunking, and uploading.
+  - Supports category-based management of knowledge content.
 
 - ⬜️ **Frontend Web Development**
   - Initial frontend version implemented, including:
     - Knowledge base search and display
-  - To be implemented
+  - To be implemented:
     - User feedback entry (correction suggestions)
     - Form for users to add knowledge base content
 
-
 - ⬜️ **User Feedback Processing Mechanism**
-  - Support users to correct and annotate existing knowledge content.
-  - Backend plans to auto-categorize feedback and decide on knowledge updates with review interfaces.
-
+  - Supports users to correct and annotate existing knowledge content.
+  - Backend plans to auto-categorize feedback and provide review interfaces for knowledge updates.
 
 - ⬜️ **New Content Review and Sync Mechanism**
   - Newly added knowledge will go through manual/semi-automatic review.
@@ -175,6 +174,7 @@ Use `doc_preprocess.py` to perform document cleaning and paragraph extraction:
 python doc_preprocess.py --input data/sample.pdf --output out/cleaned.json
 ```
 
+
 ### Knowledge Base Sync
 
 Use `upload_to_dify_datasets.py` to upload `.txt`/`.md` files produced by `dify_doc_processor.py` to the corresponding Dify datasets (knowledge bases) using parent-child chunking. Files are routed by the filename prefix before the first underscore `_`.
@@ -189,8 +189,8 @@ Use `upload_to_dify_datasets.py` to upload `.txt`/`.md` files produced by `dify_
 - Default segmentation config (overridable)
   - Parent separator: `##`
   - Child separator: `\n`
-  - Parent max length: 1024
-  - Child max length: 512
+  - Parent max length: 4000
+  - Child max length: 4000
 
 - API
   - Uses Dataset API Key (pass via `--dataset-token` or environment variable `DIFY_DATASET_API_KEY`)
@@ -219,15 +219,51 @@ Note: Name processed files as `prefix_title.txt`, e.g., `业务知识_SFE-目标
 
 Open the browser at [https://vling.刘竹.cn/](https://vling.刘竹.cn/) to get started.
 
+
 ## Project Structure
 
 ```
 Dify/
-├── dify_doc_processor.py   # Dify document processor
-├── requirements.txt        # Dependencies
-├── README.md               # Project documentation
-├── tool_dify.py            # Main entry point
-└── difyConfig.txt          # Configuration file
+├── dify_doc_processor.py       # Dify document processor (cleaning & chunking)
+├── difyConfig.txt              # Dify API and parameter config
+├── index.html                  # Web frontend homepage
+├── LICENSE                     # Project license
+├── PyCharmMiscProject.iml      # PyCharm project config
+├── README_CN.md                # Chinese documentation
+├── README.md                   # English documentation
+├── requirements.txt            # Python dependencies
+├── tool_dify.py                # Main entry point, integrates all modules
+├── tool_dify.spec              # PyInstaller build config
+├── upload_to_dify_datasets.py  # Batch upload processed docs to Dify KB
+├── app/                        # Mini program/frontend directory
+│   ├── app.json                # Mini program global config
+│   ├── project.config.json     # Mini program project config
+│   ├── sitemap.json            # Mini program sitemap
+│   ├── assets/                 # Frontend assets (images, etc.)
+│   │   ├── demo.png            # Demo image
+│   │   ├── logo.png            # Logo image
+│   │   └── robot.jpg           # Robot image
+│   └── pages/                  # Mini program pages
+│       └── index/              # Homepage
+│           ├── index.js        # Homepage logic
+│           ├── index.json      # Homepage config
+│           ├── index.wxml      # Homepage structure
+│           └── index.wxss      # Homepage style
+├── assets/                     # Common image assets
+│   ├── demo.png                # Demo image
+│   ├── logo.png                # Logo image
+│   └── robot.jpg               # Robot image
+└── build/                      # Build output
+  └── tool_dify/              # PyInstaller build files
+    ├── Analysis-00.toc     # Build analysis
+    ├── base_library.zip    # Python base library
+    ├── EXE-00.toc          # Executable analysis
+    ├── PKG-00.toc          # Package analysis
+    ├── PYZ-00.pyz          # Pyz package
+    ├── PYZ-00.toc          # Pyz analysis
+    ├── tool_dify.pkg       # Main program package
+    ├── warn-tool_dify.txt  # Build warnings
+    └── xref-tool_dify.html # Cross-reference analysis
 ```
 
 ## Contributing

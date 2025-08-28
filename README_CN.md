@@ -3,7 +3,7 @@
 </div>
 
 <div align="center">
-  一个基于 Dify 的、面向医药行业的强大 AI 知识库系统。  
+  一个基于 Dify 的、面向的强大 AI 知识库系统。  
   <br>
   本项目集成了文档清洗、智能分段处理和 Web 前端，可实现领域知识库的实时更新与纠错管理。
 </div>
@@ -11,7 +11,7 @@
 <p align="center">
   <br>
   <a href="https://www.python.org/">
-    <img src="https://img.shields.io/badge/python-3.10%2B-blue.svg" alt="Python Version">
+    <img src="https://img.shields.io/badge/Python-3.10%2B-blue.svg" alt="Python Version">
   </a>
 
   <a href="https://opensource.org/licenses/MIT">
@@ -25,6 +25,11 @@
   <a href="https://mineru.net/">
     <img src="https://img.shields.io/badge/MinerU-DocCleaning-blueviolet.svg" alt="MinerU">
   </a>
+
+  <a href="https://www.siliconflow.cn/">
+    <img src="https://img.shields.io/badge/Siliconflow-API-purple.svg" alt="硅基流动 API">
+  </a>
+
 </p>
 
 <p align="center">
@@ -62,7 +67,7 @@
 ---
 
 ## 功能特色
-- **📄 使用 MinerU 进行文档清洗**：自动清洗原始医药行业文档，为后续智能处理做好准备。
+- **📄 使用 MinerU 进行文档清洗**：清洗原始文档，为后续智能处理做好准备。
 - **🔁 通过 Dify 工作流 API 进行智能分段**：使用 Dify 强大的工作流接口对文档进行父子结构分段。
 - **📚 自动同步至知识库**：将清洗与分段后的文档内容自动同步至 Dify 指定知识库。
 - **🌐 前端 Web 页面**：直观的网页界面，用户可以：
@@ -75,7 +80,7 @@
 ### 待办事项
 
 - ✅ **文档预处理（MinerU 集成）**
-  - 已完成使用 MinerU 对原始医药行业文档进行初步清洗，包括去除无关内容、图片格式规范化等。
+  - 已完成使用 MinerU 对原始文档进行初步清洗，包括去除无关内容、图片格式规范化等。
   - 输出为结构化的清洗文本，便于后续处理。
 
 
@@ -144,7 +149,7 @@ style D fill:#e8f5e9,stroke:#2e7d32,stroke-width:3px
 
 ---
 
-## 安装说明 (文字内容待调整)
+## 安装说明
 
 ### 克隆仓库
 
@@ -163,15 +168,15 @@ pip install -r requirements.txt
 
 ---
 
-## 使用方法 (文字内容待调整)
+## 使用方法
 
-### 文档导入
+<!-- ### 文档导入
 
 使用 `doc_preprocess.py` 来执行文档清洗与段落提取：
 
 ```bash
 python doc_preprocess.py --input data/sample.pdf --output out/cleaned.json
-```
+``` -->
 
 ### 知识库同步
 
@@ -187,8 +192,8 @@ python doc_preprocess.py --input data/sample.pdf --output out/cleaned.json
 - 默认分段配置（可覆盖）
   - 父段分隔符: `##`
   - 子段分隔符: `\n`
-  - 父段最大长度: 1024
-  - 子段最大长度: 512
+  - 父段最大长度: 4000
+  - 子段最大长度: 4000
 
 - API 设置
   - 使用 Dataset API Key（可用 `--dataset-token` 指定，或环境变量 `DIFY_DATASET_API_KEY`）
@@ -219,13 +224,49 @@ python upload_to_dify_datasets.py \
 
 ## 项目结构
 
+
 ```
 Dify/
-├── dify_doc_processor.py   # Dify 文档处理器
-├── requirements.txt        # 项目依赖
-├── README.md               # 项目说明文档
-├── tool_dify.py            # 主程序入口
-└── difyConfig.txt          # 配置文件
+├── dify_doc_processor.py       # Dify文档处理主脚本，处理文档清洗与分段
+├── difyConfig.txt              # Dify相关API及参数配置文件
+├── index.html                  # Web前端首页
+├── LICENSE                     # 项目许可证
+├── PyCharmMiscProject.iml      # PyCharm项目配置文件
+├── README_CN.md                # 中文项目说明文档
+├── README.md                   # 英文项目说明文档
+├── requirements.txt            # Python依赖包列表
+├── tool_dify.py                # 主程序入口，集成各功能模块
+├── tool_dify.spec              # PyInstaller打包配置
+├── upload_to_dify_datasets.py  # 批量上传处理后文档到Dify知识库脚本
+├── app/                        # 小程序/前端相关目录
+│   ├── app.json                # 小程序全局配置
+│   ├── project.config.json     # 小程序项目配置
+│   ├── sitemap.json            # 小程序站点地图
+│   ├── assets/                 # 前端资源（图片等）
+│   │   ├── demo.png            # 示例图片
+│   │   ├── logo.png            # LOGO图片
+│   │   └── robot.jpg           # 机器人图片
+│   └── pages/                  # 小程序页面目录
+│       └── index/              # 首页页面
+│           ├── index.js        # 首页逻辑
+│           ├── index.json      # 首页配置
+│           ├── index.wxml      # 首页结构
+│           └── index.wxss      # 首页样式
+├── assets/                     # 通用图片资源
+│   ├── demo.png                # 示例图片
+│   ├── logo.png                # LOGO图片
+│   └── robot.jpg               # 机器人图片
+└── build/                      # 构建产物目录
+  └── tool_dify/              # PyInstaller打包生成的文件
+    ├── Analysis-00.toc     # 打包分析文件
+    ├── base_library.zip    # Python基础库
+    ├── EXE-00.toc          # 可执行文件分析
+    ├── PKG-00.toc          # 包分析文件
+    ├── PYZ-00.pyz          # 打包的pyz文件
+    ├── PYZ-00.toc          # pyz分析文件
+    ├── tool_dify.pkg       # 主程序包
+    ├── warn-tool_dify.txt  # 打包警告日志
+    └── xref-tool_dify.html # 交叉引用分析
 ```
 
 ## 贡献指南
