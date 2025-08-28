@@ -1,8 +1,3 @@
-<p align="center">
-  <a href="https://www.siliconflow.cn/">
-    <img src="https://img.shields.io/badge/Siliconflow-API-purple.svg" alt="Siliconflow API">
-  </a>
-</p>
 <div align="center">
   <img src="assets/logo.png" alt="logo">
 </div>
@@ -29,6 +24,10 @@
 
   <a href="https://mineru.net/">
     <img src="https://img.shields.io/badge/MinerU-DocCleaning-blueviolet.svg" alt="MinerU">
+  </a>
+
+  <a href="https://www.siliconflow.cn/">
+    <img src="https://img.shields.io/badge/Siliconflow-API-purple.svg" alt="Siliconflow API">
   </a>
 </p>
 
