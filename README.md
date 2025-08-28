@@ -35,8 +35,6 @@
 
 ## Quick Preview
 
-Screenshots here
-
 <div align="center">
   <img src="assets/demo.png" alt="demo">
 </div>
@@ -92,6 +90,11 @@ Screenshots here
   - Plans include retry on errors, conflict detection, and upload success logging.
 
 
+- ✅ **Multi-document Processing and Batch Import**
+  - Future support for uploading multiple documents for automated cleaning + chunking + uploading.
+  - Support category-based organization of knowledge content.
+
+
 - ⬜️ **Frontend Web Development**
   - Initial frontend version implemented, including:
     - Knowledge base search and display
@@ -110,9 +113,7 @@ Screenshots here
   - After approval, it will be automatically synced to the Dify knowledge base with author records and change logs.
 
 
-- ⬜️ **Multi-document Processing and Batch Import**
-  - Future support for uploading multiple documents for automated cleaning + chunking + uploading.
-  - Support category-based organization of knowledge content.
+
 
 
 ---
@@ -216,15 +217,7 @@ Note: Name processed files as `prefix_title.txt`, e.g., `业务知识_SFE-目标
 
 ### Frontend
 
-The frontend is built with Flask + Vue and supports basic interactions:
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Open the browser at [http://localhost:5173](http://localhost:5173) to get started.
+Open the browser at [https://vling.刘竹.cn/](https://vling.刘竹.cn/) to get started.
 
 ## Project Structure
 
