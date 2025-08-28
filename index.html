@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI欢乐助手 | 科技乐园</title>
+    <title>维灵</title>
     <style>
         :root {
             --primary: #6e44ff;
@@ -150,6 +150,7 @@
         .feature-list {
             list-style: none;
             padding: 0;
+           
         }
 
         .feature-list li {
@@ -157,6 +158,9 @@
             position: relative;
             padding-left: 35px;
             line-height: 1.5;
+            list-style-type: disc;   /* 小黑点样式：disc(实心圆)，circle(空心圆)，square(方块) */
+            padding-left: 0;         /* 去掉默认左边缩进 */
+            text-align: left;        /* 保证小黑点和文字对齐 */
         }
 
         .feature-list li::before {
@@ -532,6 +536,7 @@
         <button class="btn btn-primary" id="newChatBtn">
             <span>+ 新建对话</span>
         </button>
+
     </nav>
 
     <div class="main-container">
@@ -545,13 +550,22 @@
             <h2>智能助手</h2>
             <p>让科技变得有趣！我们的AI助手不仅能解决问题，还能给您带来欢乐的互动体验。</p>
             
-            <h2>特色功能</h2>
+            <h2>🔬 核心业务支持</h2>
             <ul class="feature-list">
-                <li>幽默风趣的对话风格</li>
-                <li>智能表情和动画反馈</li>
-                <li>个性化互动体验</li>
-                <li>多主题切换功能</li>
-                <li>学习您的喜好</li>
+
+                <li>药品全流程管理(进院、集采、挂网、流向、零售渠道)</li>
+                <li>销售效能优化(SFE策略、辖区划分、指标设置、Veeva系统应用)</li>
+                <li>合规与法规(代表合规、政策解读、质量管理)</li>
+                <li>市场战略(OTC趋势、中医药创新、器械布局、营销变革)</li>
+              
+            </ul>
+            
+             <h2>📊 数据洞察服务</h2>
+            <ul class="feature-list">
+
+                <li>医生/医院主数据 & 机构合并</li>
+                <li>销售数据分析(区域/产品/品牌)</li>
+                <li>PowerBI权限配置 & 数据排查</li>
             </ul>
             
             <div class="conversation-history">
